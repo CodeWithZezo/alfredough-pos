@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders             Order[]
+  orderEdits         OrderEdit[]
+  orderCancellations OrderCancellation[]
+  orderReturns       OrderReturn[]
+
+  @@map("admins")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  status    Status    @default(active)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          Int              @id @default(autoincrement())
+  name        String
+  description String?
+  categoryId  Int
+  basePrice   Decimal
+  status      Status           @default(active)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  category    Category         @relation(fields: [categoryId], references: [id])
+  variants    ProductVariant[]
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id         Int         @id @default(autoincrement())
+  productId  Int
+  name       String
+  price      Decimal
+  status     Status      @default(active)
+  product    Product     @relation(fields: [productId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("product_variants")
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String   @unique
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+
+  @@index([phone])
+  @@map("customers")
+}
+
+model Order {
+  id             Int           @id @default(autoincrement())
+  customerId     Int?
+  adminId        Int
+  orderType      OrderType     @default(dine_in)
+  status         OrderStatus   @default(pending)
+  subtotal       Decimal
+  serviceCharge  Decimal       @default(0)
+  discountType   DiscountType?
+  discountValue  Decimal       @default(0)
+  discountAmount Decimal       @default(0)
+  deliveryFee    Decimal       @default(0)
+  total          Decimal
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  customer           Customer?           @relation(fields: [customerId], references: [id])
+  admin              Admin               @relation(fields: [adminId], references: [id])
+  items              OrderItem[]
+  orderEdits         OrderEdit[]
+  orderCancellations OrderCancellation[]
+  orderReturns       OrderReturn[]
+  orderIdMapping     OrderIdMapping?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int            @id @default(autoincrement())
+  orderId   Int
+  variantId Int
+  quantity  Int
+  unitPrice Decimal
+  subtotal  Decimal
+  notes     String?
+  order     Order          @relation(fields: [orderId], references: [id])
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("order_items")
+}
+
+model KitchenStock {
+  id        Int                   @id @default(autoincrement())
+  name      String
+  quantity  Decimal
+  unit      String
+  minStock  Decimal               @default(0)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  history   KitchenStockHistory[]
+
+  @@map("kitchen_stock")
+}
+
+model KitchenStockHistory {
+  id        Int          @id @default(autoincrement())
+  stockId   Int
+  action    StockAction
+  quantity  Decimal
+  note      String?
+  createdAt DateTime     @default(now())
+  stock     KitchenStock @relation(fields: [stockId], references: [id])
+
+  @@map("kitchen_stock_history")
+}
+
+model OrderEdit {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  adminId    Int
+  changeNote String
+  oldTotal   Decimal
+  newTotal   Decimal
+  editedAt   DateTime @default(now())
+  order      Order    @relation(fields: [orderId], references: [id])
+  admin      Admin    @relation(fields: [adminId], references: [id])
+
+  @@map("order_edits")
+}
+
+model OrderCancellation {
+  id          Int      @id @default(autoincrement())
+  orderId     Int      @unique
+  adminId     Int
+  reason      String
+  cancelledAt DateTime @default(now())
+  order       Order    @relation(fields: [orderId], references: [id])
+  admin       Admin    @relation(fields: [adminId], references: [id])
+
+  @@map("order_cancellations")
+}
+
+model OrderReturn {
+  id           Int      @id @default(autoincrement())
+  orderId      Int
+  adminId      Int
+  reason       String
+  refundAmount Decimal
+  returnedAt   DateTime @default(now())
+  order        Order    @relation(fields: [orderId], references: [id])
+  admin        Admin    @relation(fields: [adminId], references: [id])
+
+  @@map("order_returns")
+}
+
+model OrderIdMapping {
+  id         Int    @id @default(autoincrement())
+  orderId    Int    @unique
+  externalId String
+  system     String
+  order      Order  @relation(fields: [orderId], references: [id])
+
+  @@map("order_id_mapping")
+}
+
+enum Status {
+  active
+  inactive
+}
+
+enum OrderType {
+  dine_in
+  takeaway
+  delivery
+}
+
+enum OrderStatus {
+  pending
+  completed
+  cancelled
+  returned
+}
+
+enum DiscountType {
+  percentage
+  amount
+}
+
+enum StockAction {
+  add
+  use
+  update
+  delete
+}
