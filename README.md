@@ -124,6 +124,15 @@ alfredough-pos/
 
 ---
 
+## 🏷️ Versioning & Releases
+
+- Current version: see `package.json` (also shown at the bottom of the sidebar and at `GET /api/version`).
+- Versions follow **Semantic Versioning** (`MAJOR.MINOR.PATCH`); every release is a Git tag `vX.Y.Z`.
+- What changed in each release: [CHANGELOG.md](CHANGELOG.md)
+- How to branch, release, hotfix and roll back: [docs/RELEASE_PROCESS.md](docs/RELEASE_PROCESS.md)
+
+---
+
 ## 💡 Notes
 - All amounts are in **Pakistani Rupees (Rs.)**
 - Default admin password is hashed with **bcrypt**

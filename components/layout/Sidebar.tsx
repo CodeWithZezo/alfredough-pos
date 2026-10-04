@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useSidebar } from './SidebarContext'
 import { cn } from '@/lib/utils'
+import { APP_VERSION, COMMIT_SHA } from '@/lib/version'
 
 const navItems = [
   { href: '/dashboard',   label: 'Dashboard',  icon: LayoutDashboard },
@@ -111,6 +112,9 @@ export default function Sidebar() {
           <LogOut size={16} />
           <span className="font-medium text-sm">Sign Out</span>
         </button>
+        <p className="text-[10px] text-gray-600 px-3 mt-2" title={`Build ${COMMIT_SHA}`}>
+          v{APP_VERSION} · {COMMIT_SHA}
+        </p>
       </div>
     </aside>
   )
